@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@rbxxw | Разработка сайтов</title>
+    <script>
+    // ЗАЩИТА СРАЗУ ПРИ ЗАГРУЗКЕ
+    (function() {
+        'use strict';
+        
+        // Блокируем всё сразу
+        document.addEventListener('DOMContentLoaded', function() {
+            // Удаляем возможность сохранения
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+S, Ctrl+Shift+S, Cmd+S
+                if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = 'about:blank';
+                    return false;
+                }
+                
+                // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+                if (e.key === 'F12' || e.keyCode === 123 || 
+                   (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) ||
+                   (e.ctrlKey && e.key === 'u')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = 'about:blank';
+                    return false;
+                }
+                
+                // Ctrl+P (печать)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = 'about:blank';
+                    return false;
+                }
+                
+                // Ctrl+Shift+C
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = 'about:blank';
+                    return false;
+                }
+            });
+            
+            // Блокируем контекстное меню
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = 'about:blank';
+                return false;
+            });
+            
+            // Блокируем копирование
+            document.addEventListener('copy', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = 'about:blank';
+                return false;
+            });
+            
+            // Блокируем вырезание
+            document.addEventListener('cut', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = 'about:blank';
+                return false;
+            });
+            
+            // Блокируем вставку
+            document.addEventListener('paste', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = 'about:blank';
+                return false;
+            });
+            
+            // Блокируем перетаскивание
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+            
+            // Блокируем выделение
+            document.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+            
+            // Запрещаем просмотр исходного кода через навигацию
+            if (window.history && window.history.pushState) {
+                // Запрещаем навигацию назад
+                history.pushState(null, null, location.href);
+                window.addEventListener('popstate', function() {
+                    history.pushState(null, null, location.href);
+                    window.location.href = 'about:blank';
+                });
+                
+                // Добавляем дополнительный защитный слой
+                window.addEventListener('beforeunload', function(e) {
+                    // Не даём уйти с сайта обычным способом
+                    e.preventDefault();
+                    e.returnValue = '';
+                });
+            }
+            
+            // Защита от DevTools (проверка изменения размера)
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            var devToolsOpened = false;
+            
+            var checkDevTools = setInterval(function() {
+                if (window.innerWidth !== width || window.innerHeight !== height) {
+                    width = window.innerWidth;
+                    height = window.innerHeight;
+                    
+                    // Если размер сильно изменился - вероятно открыли DevTools
+                    if (Math.abs(width - window.screen.availWidth) > 100 || 
+                        Math.abs(height - window.screen.availHeight) > 100) {
+                        devToolsOpened = true;
+                        window.location.href = 'about:blank';
+                    }
+                }
+                
+                // Дополнительная проверка через debugger
+                var start = Date.now();
+                (function() {
+                    debugger;
+                })();
+                
+                if (Date.now() - start > 100) {
+                    devToolsOpened = true;
+                    window.location.href = 'about:blank';
+                }
+            }, 500);
+            
+            // Блокируем загрузку сайта в iframe
+            if (window.self !== window.top) {
+                window.top.location.href = 'about:blank';
+            }
+            
+            // Очистка localStorage и sessionStorage при попытке взлома
+            var originalSetItem = localStorage.setItem;
+            var originalGetItem = localStorage.getItem;
+            
+            localStorage.setItem = function(key, value) {
+                if (key === 'devToolsDetected') {
+                    window.location.href = 'about:blank';
+                }
+                return originalSetItem.apply(this, arguments);
+            };
+            
+            localStorage.getItem = function(key) {
+                if (key === 'devToolsDetected') {
+                    window.location.href = 'about:blank';
+                }
+                return originalGetItem.apply(this, arguments);
+            };
+            
+            // Защита от копирования через буфер обмена
+            document.addEventListener('focusin', function(e) {
+                if (devToolsOpened) {
+                    window.location.href = 'about:blank';
+                }
+            });
+            
+            // Защита от инспектирования элементов
+            var elements = document.getElementsByTagName('*');
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].addEventListener('DOMNodeInserted', function() {
+                    if (devToolsOpened) {
+                        window.location.href = 'about:blank';
+                    }
+                });
+            }
+        });
+        
+        // Предотвращаем восстановление вкладки
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.href = 'about:blank';
+            }
+        });
+        
+        // Блокируем доступ к консоли даже после перезагрузки
+        Object.defineProperty(window, 'console', {
+            get: function() {
+                window.location.href = 'about:blank';
+                return {
+                    log: function() { window.location.href = 'about:blank'; },
+                    warn: function() { window.location.href = 'about:blank'; },
+                    error: function() { window.location.href = 'about:blank'; },
+                    info: function() { window.location.href = 'about:blank'; },
+                    debug: function() { window.location.href = 'about:blank'; }
+                };
+            },
+            set: function() {
+                window.location.href = 'about:blank';
+            }
+        });
+        
+        // Защита от сохранения страницы
+        window.addEventListener('beforeunload', function(e) {
+            // Очищаем всё что можно
+            document.body.innerHTML = '';
+            document.head.innerHTML = '';
+            
+            // Перехватываем попытки сохранить
+            if (e.clientY < 0 || e.clientX < 0) {
+                window.location.href = 'about:blank';
+            }
+        });
+        
+    })();
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -khtml-user-select: none;
+            -webkit-user-drag: none;
+            user-drag: none;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            position: relative;
+            cursor: pointer;
+            overflow-x: hidden;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        #loader-text {
+            font-size: 2.5em;
+            color: #fff;
+            text-shadow: 0 0 10px #fff;
+            animation: fade 1.5s infinite;
+            margin-bottom: 15px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        #loader-hint {
+            font-size: 0.8em;
+            opacity: 0.6;
+            color: #aaa;
+            font-weight: 300;
+        }
+
+        @keyframes fade {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        #background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -1;
+            display: none;
+            pointer-events: none;
+            filter: brightness(0.7);
+        }
+
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            background: linear-gradient(45deg, #fff, #aaa, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: float 6s ease-in-out infinite;
+            background-size: 200% auto;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0); 
+                background-position: 0% center;
+            }
+            50% { 
+                transform: translateY(-15px); 
+                background-position: 100% center;
+            }
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            max-width: 900px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+            color: #ddd;
+        }
+
+        .services {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin: 50px 0;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 35px;
+            width: 350px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .service-card:hover::before {
+            left: 100%;
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #667eea;
+            text-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .service-card h3 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .service-card p {
+            color: #ccc;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .contact {
+            margin-top: 40px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .contact a {
+            color: #ffeb3b;
+            text-decoration: none;
+            transition: all 0.3s;
+            text-shadow: 0 0 15px rgba(255, 235, 59, 0.7);
+            padding: 5px 15px;
+            border-radius: 10px;
+            background: rgba(255, 235, 59, 0.1);
+        }
+
+        .contact a:hover {
+            color: #fff;
+            background: rgba(255, 235, 59, 0.2);
+            text-shadow: 0 0 20px rgba(255, 235, 59, 1);
+        }
+
+        .portfolio-note {
+            background: rgba(32, 106, 227, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 40px 0;
+            text-align: center;
+            border: 2px dashed rgba(32, 106, 227, 0.5);
+            color: #a3d5ff;
+            font-size: 1.2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .plans-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin: 60px 0;
+        }
+
+        .plan {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 40px;
+            width: 100%;
+            max-width: 550px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #ff9800, #2196f3);
+        }
+
+        .plan-premium::before {
+            background: linear-gradient(90deg, #ff9800, #ff5722);
+        }
+
+        .plan-stars::before {
+            background: linear-gradient(90deg, #2196f3, #00bcd4);
+        }
+
+        .plan:hover {
+            transform: translateY(-15px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .plan-title {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 25px 0;
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .premium-price {
+            color: #ff9800;
+            text-shadow: 0 0 15px rgba(255, 152, 0, 0.5);
+            border: 2px solid rgba(255, 152, 0, 0.3);
+        }
+
+        .stars-price {
+            color: #2196f3;
+            text-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+            border: 2px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .payment-method {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 18px;
+            border-radius: 15px;
+            margin: 25px 0;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.1rem;
+        }
+
+        .payment-warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            padding: 18px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border-left: 5px solid #ffc107;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .features {
+            list-style: none;
+            margin: 35px 0;
+        }
+
+        .features li {
+            padding: 15px 0;
+            padding-left: 45px;
+            position: relative;
+            color: #eee;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .features li:last-child {
+            border-bottom: none;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+        }
+
+        .features li.included:before {
+            content: "✓";
+            color: #4CAF50;
+        }
+
+        .features li.not-included:before {
+            content: "✗";
+            color: #f44336;
+            text-shadow: 0 0 10px rgba(244, 67, 54, 0.7);
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            margin: 30px 0;
+        }
+
+        .addition {
+            background: rgba(33, 150, 243, 0.2);
+            padding: 25px;
+            border-radius: 20px;
+            margin-top: 35px;
+            border-left: 5px solid #2196f3;
+            color: #a3d5ff;
+            backdrop-filter: blur(10px);
+        }
+
+        .addition h3 {
+            color: #90caf9;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .note {
+            text-align: center;
+            margin-top: 30px;
+            font-style: italic;
+            color: #aaa;
+            font-size: 1rem;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 80px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px 20px 0 0;
+        }
+
+        @media (max-width: 768px) {
+            .plans-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .plan {
+                width: 100%;
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2.8rem;
+            }
+            
+            .service-card {
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .plan-price {
+                font-size: 2.5rem;
+            }
+            
+            .plan-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <div id="loader-text">CLICK ANYWHERE</div>
+        <div id="loader-hint">(or press Enter/Space)</div>
+    </div>
+
+    <video id="background-video" loop playsinline muted>
+        <source src="https://r2.guns.lol/4e5fa664-0ffa-436c-9cac-010461f8a2f1.mp4" type="video/mp4">
+    </video>
+
+    <div class="video-overlay" id="videoOverlay"></div>
+
+    <div class="container" id="mainContent">
+        <header>
+            <h1>@rbxxw | Разработка сайтов</h1>
+            <p class="subtitle">Полный цикл создания сайтов: от идеи до запуска. Работаю с нуля или адаптирую готовые решения под ваши задачи.</p>
+            
+            <div class="services">
+                <div class="service-card">
+                    <div class="service-icon"></div>
+                    <h3>Создание с нуля</h3>
+                    <p>Разрабатываю уникальные сайты любой сложности под конкретные задачи и требования клиента.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon"></div>
+                    <h3>Адаптация шаблонов</h3>
+                    <p>Имею портфолио готовых работ. Выбираете понравившийся вариант, я адаптирую под вас.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon"></div>
+                    <h3>Продвижение</h3>
+                    <p>Накрутка просмотров в TikTok для привлечения трафика на ваш сайт.</p>
+                </div>
+            </div>
+            
+            <p class="contact">Связь через Telegram: <a href="https://t.me/rbxxw" target="_blank">@rbxxw</a></p>
+            <p class="portfolio-note">Портфолио готовых работ высылаю в Telegram по запросу</p>
+        </header>
+        
+        <div class="plans-container">
+            <!-- План за Telegram Premium -->
+            <div class="plan plan-premium">
+                <div class="plan-header">
+                    <h2 class="plan-title">Тариф "Telegram Premium"</h2>
+                    <div class="plan-price premium-price">2500 звёзд</div>
+                    <p style="color: #ccc; font-size: 1.2rem;">Telegram Premium на 12 месяцев</p>
+                </div>
+                
+                <div class="payment-method">
+                    Оплата: ТОЛЬКО Telegram Premium на 12 месяцев (2500 звёзд)
+                </div>
+                
+                <div class="payment-warning">
+                    ⚠️ За звёзды отдельно НЕ выполняется. Только через покупку Telegram Premium!
+                </div>
+                
+                <p style="color: #fff; font-weight: bold; margin-bottom: 15px; font-size: 1.3rem;">Что вы получаете:</p>
+                <ul class="features">
+                    <li class="included">Создание сайта с нуля или адаптация шаблона</li>
+                    <li class="included">Поддержка сайта на 12 месяцев</li>
+                    <li class="included">Возможность написать мне в любое время</li>
+                    <li class="included">Бесплатно добавить или убрать блоки на сайте</li>
+                    <li class="included">Полная переработка сайта при необходимости</li>
+                    <li class="included">Консультации по продвижению</li>
+                </ul>
+                
+                <div class="divider"></div>
+                
+                <div class="addition">
+                    <h3>Дополнительная услуга:</h3>
+                    <p><strong>Продвижение через TikTok</strong> — накрутка просмотров на ролики для привлечения трафика на сайт.</p>
+                    <p>Доступно только при оплате Telegram Premium или 1000 Robux.</p>
+                </div>
+            </div>
+            
+            <!-- План за звёзды -->
+            <div class="plan plan-stars">
+                <div class="plan-header">
+                    <h2 class="plan-title">Тариф "Звёзды"</h2>
+                    <div class="plan-price stars-price">200 звёзд / 2 месяца</div>
+                    <p style="color: #ccc; font-size: 1.2rem;">Оплата каждые 2 месяца</p>
+                </div>
+                
+                <div class="payment-method">
+                    Оплата: звёздами напрямую (каждые 2 месяца)
+                </div>
+                
+                <p style="color: #fff; font-weight: bold; margin-bottom: 15px; font-size: 1.3rem;">Что вы получаете:</p>
+                <ul class="features">
+                    <li class="included">Создание сайта с нуля или адаптация шаблона</li>
+                    <li class="included">Базовая поддержка сайта</li>
+                    <li class="not-included">Поддержка в любое время (ограничено)</li>
+                    <li class="not-included">Изменение структуры сайта (платно)</li>
+                    <li class="not-included">Полная переработка сайта (платно)</li>
+                    <li class="not-included">Продвижение через TikTok (недоступно)</li>
+                </ul>
+                
+                <div class="divider"></div>
+                
+                <div class="payment-warning">
+                    ⚠️ Услуга продвижения через TikTok НЕ доступна при оплате звёздами отдельно!
+                </div>
+                
+                <div class="note">После создания сайта необходимо оплачивать 200 звёзд каждые 2 месяца для продолжения поддержки.</div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Разработка сайтов. Связь: Telegram @rbxxw</p>
+            <p>Все услуги оказываются после предоплаты. Оплата только через Telegram Stars или Robux.</p>
+        </footer>
+    </div>
+
+    <script>
+        // ОСНОВНАЯ ЛОГИКА САЙТА
+        document.addEventListener('DOMContentLoaded', function() {
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loader-text');
+            const loaderHint = document.getElementById('loader-hint');
+            const video = document.getElementById('background-video');
+            const overlay = document.getElementById('videoOverlay');
+            const content = document.getElementById('mainContent');
+            
+            let siteStarted = false;
+
+            function initializeSite() {
+                if (siteStarted) return;
+                siteStarted = true;
+                
+                loader.style.opacity = '0';
+                loader.style.transition = 'opacity 0.5s ease';
+                
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    
+                    video.style.display = 'block';
+                    video.muted = true; // Начинаем с выключенного звука
+                    video.volume = 0.5;
+                    
+                    overlay.style.display = 'block';
+                    content.style.display = 'block';
+                    
+                    content.style.opacity = '0';
+                    setTimeout(() => {
+                        content.style.opacity = '1';
+                    }, 100);
+                    
+                    video.play().catch(error => {
+                        console.log('Video autoplay blocked');
+                    });
+                    
+                    document.body.style.cursor = 'default';
+                }, 500);
+            }
+
+            // Запуск по клику в любом месте
+            document.addEventListener('click', function(event) {
+                if (!siteStarted) {
+                    initializeSite();
+                }
+            });
+
+            // Запуск по клавишам
+            document.addEventListener('keydown', function(event) {
+                if ((event.code === 'Enter' || event.code === 'Space') && !siteStarted) {
+                    event.preventDefault();
+                    initializeSite();
+                }
+            });
+
+            // Обновляем текст
+            setTimeout(() => {
+                loaderText.textContent = 'CLICK ANYWHERE';
+                loaderHint.textContent = '(or press Enter/Space)';
+            }, 1000);
+            
+            // Автозапуск через 10 секунд
+            setTimeout(() => {
+                if (!siteStarted && loader.style.display !== 'none') {
+                    initializeSite();
+                }
+            }, 10000);
+            
+            // Добавляем обработчик ошибок видео
+            video.addEventListener('error', function() {
+                console.log('Video loading error');
+                // Если видео не загрузилось, все равно показываем контент
+                if (!siteStarted) {
+                    initializeSite();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
